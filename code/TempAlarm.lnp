@@ -1,0 +1,7 @@
+"STARTUP.obj",
+"TempAlarm.obj",
+"LM016L.obj",
+"DS18B20.obj",
+"COMPIM.obj",
+"Timer.obj" 
+TO "TempAlarm" Rtx51Tiny 

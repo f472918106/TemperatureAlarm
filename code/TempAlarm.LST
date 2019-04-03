@@ -1,0 +1,205 @@
+C51 COMPILER V9.52.0.0   TEMPALARM                                                         03/29/2019 10:30:02 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE TEMPALARM
+OBJECT MODULE PLACED IN TempAlarm.OBJ
+COMPILER INVOKED BY: D:\Tools\keil uvision4\C51\BIN\C51.EXE TempAlarm.c BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          #include <reg51.h>
+   2          #include <rtx51tny.h>
+   3          #include "Timer.h"
+*** WARNING C323 IN LINE 1 OF Timer.h: newline expected, extra characters found
+   4          #include "LM016L.h"
+*** WARNING C323 IN LINE 1 OF LM016L.h: newline expected, extra characters found
+   5          #include "DS18B20.h"
+*** WARNING C323 IN LINE 1 OF DS18B20.h: newline expected, extra characters found
+   6          #include "COMPIM.h"
+*** WARNING C323 IN LINE 1 OF COMPIM.h: newline expected, extra characters found
+   7          
+   8          unsigned char code Number[]={"0123456789"};
+   9          unsigned char code Notice[]={"Run By DS18B20"};
+  10          unsigned char code Error[]={"ERROR"};
+  11          unsigned char code Temp[]={"Temp:"};
+  12          unsigned char code Cent[]={"'C"};
+  13          unsigned char code Alarm[]={"Runnaway Temperature"};
+  14          
+  15          unsigned char TL;
+  16          unsigned char TH;
+  17          unsigned char TN;
+  18          unsigned char TD;
+  19          
+  20          sbit Sounder=P1^0;
+  21          
+  22          void DisplayError()
+  23          {
+  24   1        unsigned char i;
+  25   1        WriteAddressToLM016L(0x00);
+  26   1        i=0;
+  27   1        while(Error[i]!='\0')
+  28   1        {
+  29   2          WriteDataToLM016L(Error[i]);
+  30   2          i++;
+  31   2          DelayMS(100);
+  32   2        }
+  33   1        while(1);
+  34   1      }
+  35          
+  36          void DisplayExplain()
+  37          {
+  38   1        unsigned char i;
+  39   1        WriteAddressToLM016L(0x00);
+  40   1        i=0;
+  41   1        while(Notice[i]!='\0')
+  42   1        {
+  43   2          WriteDataToLM016L(Notice[i]);
+  44   2          i++;
+  45   2          DelayMS(10);
+  46   2        }
+  47   1      }
+  48          
+  49          void DisplaySymbol()
+  50          {
+  51   1        unsigned char i;
+C51 COMPILER V9.52.0.0   TEMPALARM                                                         03/29/2019 10:30:02 PAGE 2   
+
+  52   1        WriteAddressToLM016L(0x40);
+  53   1        i=0;
+  54   1        while(Temp[i]!='\0')
+  55   1        {
+  56   2          WriteDataToLM016L(Temp[i]);
+  57   2          i++;
+  58   2          DelayMS(10);
+  59   2        }
+  60   1      }
+  61          
+  62          void DisplayDot()
+  63          {
+  64   1        WriteAddressToLM016L(0x49);
+  65   1        WriteDataToLM016L('.');
+  66   1        DelayMS(10);
+  67   1      }
+  68          
+  69          void DisplayCent()
+  70          {
+  71   1        unsigned char i;
+  72   1        WriteAddressToLM016L(0x4C);
+  73   1        i=0;
+  74   1        while(Cent[i]!='\0')
+  75   1        {
+  76   2          WriteDataToLM016L(Cent[i]);
+  77   2          i++;
+  78   2          DelayMS(10);
+  79   2        }
+  80   1      }
+  81          
+  82          void DisplayTN(unsigned char x)
+  83          {
+  84   1        unsigned char j,k,l;
+  85   1        j=x/100;
+  86   1        k=(x%100)/10;
+  87   1        l=x%10;
+  88   1        WriteAddressToLM016L(0x46);
+  89   1        WriteDataToLM016L(Number[j]);
+  90   1        WriteDataToLM016L(Number[k]);
+  91   1        WriteDataToLM016L(Number[l]);
+  92   1        Delay(50);
+  93   1      }
+  94          
+  95          void DisplayTD(unsigned char x)
+  96          {
+  97   1        WriteAddressToLM016L(0x4A);
+  98   1        WriteDataToLM016L(Number[x]);
+  99   1        Delay(50); // ?
+ 100   1      }
+ 101            
+ 102          void Initlize() _task_ 0
+ 103          {
+ 104   1        InitlizeTimer();
+ 105   1        os_create_task(1);
+ 106   1        os_create_task(2);
+ 107   1        os_create_task(3);
+ 108   1        os_create_task(4);
+ 109   1        os_delete_task(0);
+ 110   1      }
+ 111          
+ 112          void ComData() _task_ 1
+ 113          {
+C51 COMPILER V9.52.0.0   TEMPALARM                                                         03/29/2019 10:30:02 PAGE 3   
+
+ 114   1        unsigned char str;
+ 115   1        while(1)
+ 116   1        {
+ 117   2          str=ReadDataFromCom();
+ 118   2          SendByteToCom(str);
+ 119   2        }
+ 120   1      }
+ 121          
+ 122          void TempController() _task_ 2
+ 123          {
+ 124   1        InitlizeLM016L();
+ 125   1        Delay(5);
+ 126   1        DisplayExplain();
+ 127   1        DisplaySymbol();
+ 128   1        DisplayDot();
+ 129   1        DisplayCent();
+ 130   1        // TODO: 温度读取有问题
+ 131   1        while(1)
+ 132   1        {
+ 133   2          ReadTemperature();
+ 134   2          DisplayTN(TN);
+ 135   2          DisplayTD(TD);
+ 136   2          DelayMS(100);
+ 137   2        }
+ 138   1      }
+ 139          
+ 140          void TempMonitor() _task_ 3
+ 141          {
+ 142   1        while(1)
+ 143   1        {
+ 144   2          if((TN/100)>0)
+ 145   2          {
+ 146   3            SendDataToCom(Alarm);
+ 147   3            os_send_signal(4);
+ 148   3          }
+ 149   2          else
+ 150   2          {
+ 151   3            Sounder=1;
+ 152   3          }
+ 153   2        }
+ 154   1      }
+ 155          
+ 156          void SounderController() _task_ 4
+ 157          {
+ 158   1        unsigned char i=0;
+ 159   1        while(1)
+ 160   1        {
+ 161   2          os_wait(K_SIG,0,0);
+ 162   2          for(i=0;i<100;i++)
+ 163   2          {
+ 164   3            Sounder=~Sounder;
+ 165   3            Delay(2);
+ 166   3          }
+ 167   2          Sounder=0;
+ 168   2        }
+ 169   1      }
+ 170              
+ 171                
+ 172              
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+C51 COMPILER V9.52.0.0   TEMPALARM                                                         03/29/2019 10:30:02 PAGE 4   
+
+   CODE SIZE        =    390    ----
+   CONSTANT SIZE    =     62    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      4      10
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  4 WARNING(S),  0 ERROR(S)

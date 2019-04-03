@@ -1,0 +1,112 @@
+C51 COMPILER V9.52.0.0   DS18B20                                                           03/28/2019 22:33:49 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE DS18B20
+OBJECT MODULE PLACED IN DS18B20.OBJ
+COMPILER INVOKED BY: D:\Tools\keil uvision4\C51\BIN\C51.EXE DS18B20.c BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          #include "DS18B20.h"
+*** WARNING C323 IN LINE 1 OF DS18B20.h: newline expected, extra characters found
+   2          #include "Timer.h"
+*** WARNING C323 IN LINE 1 OF Timer.h: newline expected, extra characters found
+   3          #include <reg51.h>
+   4          
+   5          // DS18B20数据线
+   6          sbit DQ=P2^3;
+   7          
+   8          // 函数功能: DS18B20初始化函数，读取应答信号
+   9          // 参数: 无
+  10          // 返回值: flag 0->成功 1->失败
+  11          void InitlizeDS18B20()
+  12          {
+  13   1        DQ=1;
+  14   1        DelayMS(8);
+  15   1        DQ=0;
+  16   1        DelayMS(90);
+  17   1        DQ=1;
+  18   1        DelayMS(8);
+  19   1        DQ=1;
+  20   1        DelayMS(4);
+  21   1      }
+  22          
+  23          // 函数功能: 从DS18B20读取一个字节数据
+  24          // 参数: 无
+  25          // 返回值: str
+  26          unsigned char ReadByteFromDS18B20() // TODO: 读取时序有问题 前后数据采样相同
+  27          {
+  28   1        unsigned char i,str;
+  29   1        DQ=1;
+  30   1        for(i=0;i<8;i++)
+  31   1        {
+  32   2          DQ=0;
+  33   2          str>>=1;
+  34   2          DQ=1;
+  35   2          if(DQ==1)
+  36   2          {
+  37   3            str|=0x80;
+  38   3          }
+  39   2          DelayMS(8);
+  40   2          DQ=1;
+  41   2        }
+  42   1        return str;
+  43   1      }
+  44          
+  45          // 函数功能: 向DS18B20写入一个字节数据
+  46          // 参数: str
+  47          // 返回值: 无
+  48          void WriteByteToDS18B20(unsigned char str)
+  49          {
+  50   1        unsigned char i=0;
+  51   1        // DQ=1;
+  52   1        for(i=0;i<8;i++)
+  53   1        {
+C51 COMPILER V9.52.0.0   DS18B20                                                           03/28/2019 22:33:49 PAGE 2   
+
+  54   2          DQ=0;
+  55   2          DQ=str&0x01;
+  56   2          DelayMS(5);
+  57   2          DQ=1;
+  58   2          str>>=1;
+  59   2        }
+  60   1        DelayMS(4); //1
+  61   1      }
+  62          
+  63          // 函数功能: 读取DS18B20采集到的温度
+  64          // 参数: 无
+  65          // 返回值: 无
+  66          void ReadTemperature() // TODO: 读取时序有问题 前后数据采样相同
+  67          {
+  68   1        EA=0;
+  69   1        InitlizeDS18B20();
+  70   1        WriteByteToDS18B20(0xCC);
+  71   1        WriteByteToDS18B20(0x44);
+  72   1        
+  73   1        DelayMS(350);
+  74   1        
+  75   1        InitlizeDS18B20();
+  76   1        WriteByteToDS18B20(0xCC);
+  77   1        WriteByteToDS18B20(0xBE);
+  78   1        
+  79   1        TL=ReadByteFromDS18B20(); // 读取温度值低位
+  80   1        TH=ReadByteFromDS18B20(); // 读取温度值高位 
+  81   1        
+  82   1        TN=TH*16+TL/16;
+  83   1        TD=(TL%16)*10/16;
+  84   1        EA=1;
+  85   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    208    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       4
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  2 WARNING(S),  0 ERROR(S)

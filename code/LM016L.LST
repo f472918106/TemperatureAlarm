@@ -1,0 +1,137 @@
+C51 COMPILER V9.52.0.0   LM016L                                                            03/28/2019 15:04:30 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE LM016L
+OBJECT MODULE PLACED IN LM016L.OBJ
+COMPILER INVOKED BY: D:\Tools\keil uvision4\C51\BIN\C51.EXE LM016L.c BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          #include "LM016L.h"
+*** WARNING C323 IN LINE 1 OF LM016L.h: newline expected, extra characters found
+   2          #include <reg51.h>
+   3          #include <intrins.h>
+   4          #include "Timer.h"
+*** WARNING C323 IN LINE 1 OF Timer.h: newline expected, extra characters found
+   5          
+   6          // 寄存器选择位
+   7          sbit RS=P2^0;
+   8          
+   9          // 读写选择位
+  10          sbit RW=P2^1;
+  11          
+  12          // 使能信号位
+  13          sbit E=P2^2;
+  14          
+  15          // 忙碌标志位
+  16          sbit BF=P0^7;
+  17          
+  18          // 函数功能: 判断LM016L状态是否忙碌
+  19          // 参数: 无
+  20          // 返回值: status 0->空闲 1->忙碌
+  21          bit IsLM016LBusy()
+  22          {
+  23   1        bit status;
+  24   1        RS=0;
+  25   1        RW=1;
+  26   1        E=1;
+  27   1        _nop_();
+  28   1        _nop_();
+  29   1        _nop_();
+  30   1        _nop_();
+  31   1        status=BF;
+  32   1        E=0;
+  33   1        return status;
+  34   1      }
+  35          
+  36          // 函数功能: 将模式设置指令写入LM016L
+  37          // 参数: dictate
+  38          // 返回值: 无
+  39          void WriteCmdToLM016L(unsigned char dictate)
+  40          {
+  41   1        while(IsLM016LBusy()==1);
+  42   1        RS=0;
+  43   1        RW=0;
+  44   1        E=0;
+  45   1        _nop_();
+  46   1        _nop_();
+  47   1        P0=dictate;
+  48   1        _nop_();
+  49   1        _nop_();
+  50   1        _nop_();
+  51   1        _nop_();
+  52   1        E=1;
+  53   1        _nop_();
+C51 COMPILER V9.52.0.0   LM016L                                                            03/28/2019 15:04:30 PAGE 2   
+
+  54   1        _nop_();
+  55   1        _nop_();
+  56   1        _nop_();
+  57   1        E=0;
+  58   1      }
+  59          
+  60          // 函数功能: 指定字符显示的实际地址
+  61          // 参数: x 
+  62          // 返回值: 无
+  63          void WriteAddressToLM016L(unsigned char x)
+  64          {
+  65   1        WriteCmdToLM016L(x|0x80);
+  66   1      }
+  67          
+  68          // 函数功能: 将字符的标准ASCII码写入LM016L
+  69          // 参数: y
+  70          // 返回值: 无
+  71          void WriteDataToLM016L(unsigned char y)
+  72          {
+  73   1        while(IsLM016LBusy()==1);
+  74   1        RS=1;
+  75   1        RW=0;
+  76   1        E=0;
+  77   1        P0=y;
+  78   1        _nop_();
+  79   1        _nop_();
+  80   1        _nop_();
+  81   1        _nop_();
+  82   1        E=1;
+  83   1        _nop_();
+  84   1        _nop_();
+  85   1        _nop_();
+  86   1        _nop_();
+  87   1        E=0;
+  88   1      }
+  89          
+  90          // 函数功能: 对LM016L显示模式进行初始化
+  91          // 参数: 无
+  92          // 返回值: 无
+  93          void InitlizeLM016L()
+  94          {
+  95   1        DelayMS(15);
+  96   1        WriteCmdToLM016L(0x38);
+  97   1        DelayMS(5);
+  98   1        WriteCmdToLM016L(0x38);
+  99   1        DelayMS(5);
+ 100   1        WriteCmdToLM016L(0x38);
+ 101   1        DelayMS(5);
+ 102   1        WriteCmdToLM016L(0x0C);
+ 103   1        DelayMS(5);
+ 104   1        WriteCmdToLM016L(0x06);
+ 105   1        DelayMS(5);
+ 106   1        WriteCmdToLM016L(0x01);
+ 107   1        DelayMS(5);
+ 108   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    158    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+C51 COMPILER V9.52.0.0   LM016L                                                            03/28/2019 15:04:30 PAGE 3   
+
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       1
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  2 WARNING(S),  0 ERROR(S)

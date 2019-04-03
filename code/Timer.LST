@@ -1,0 +1,59 @@
+C51 COMPILER V9.52.0.0   TIMER                                                             03/29/2019 10:30:02 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE TIMER
+OBJECT MODULE PLACED IN Timer.OBJ
+COMPILER INVOKED BY: D:\Tools\keil uvision4\C51\BIN\C51.EXE Timer.c BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          #include "Timer.h"
+*** WARNING C323 IN LINE 1 OF Timer.h: newline expected, extra characters found
+   2          #include <reg51.h>
+   3          #include "intrins.h"
+   4          #define BAUDRATE 9600
+   5          #define SYSCLK 11059200
+   6          
+   7          // 函数功能: 11.0592Mhz晶振 毫秒级延时函数
+   8          // 参数: n
+   9          // 返回值: 无
+  10          void Delay(unsigned int n)
+  11          {
+  12   1        unsigned char x,y;
+  13   1        for(x=n;x>0;x--)
+  14   1          for(y=124;y>0;y--);
+  15   1      }
+  16          
+  17          // 函数功能: 11.0592Mhz晶振 微秒级延时函数
+  18          // 参数: n
+  19          // 返回值: 无
+  20          void DelayMS(unsigned int n)
+  21          {
+  22   1        while(n--);
+  23   1      }
+  24          
+  25          // 函数功能: 定时器初始化函数
+  26          // 参数: 无
+  27          // 返回值: 无
+  28          void InitlizeTimer()
+  29          {
+  30   1        TMOD=0x20;
+  31   1        PCON=0;
+  32   1        TL1=TH1=256-SYSCLK/BAUDRATE/32/12;
+  33   1        SCON=0x50;
+  34   1        TR1=1;
+  35   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     43    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)
